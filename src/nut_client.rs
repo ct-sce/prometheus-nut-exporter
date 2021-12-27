@@ -108,7 +108,7 @@ async fn query_nut_vars(mut stream: &mut BufReader<TcpStream>, upses: &mut UpsVa
 
     for (ups, vars) in upses.iter_mut() {
         let line_consumer = |line: &str| {
-            let captures_opt = VAR_PATTERN.captures(&line);
+            let captures_opt = VAR_PATTERN.captures(line);
             match captures_opt {
                 Some(captures) => {
                     let variable = captures["var"].to_owned();
