@@ -40,9 +40,9 @@ async fn scrape_nut_upses(mut stream: &mut BufReader<TcpStream>) -> Result<(UpsV
     let mut upses: UpsVarMap = HashMap::new();
     let mut nut_version: NutVersion = "".to_owned();
 
-    query_nut_version(&mut stream, &mut nut_version).await?;
-    query_nut_upses(&mut stream, &mut upses).await?;
-    query_nut_vars(&mut stream, &mut upses).await?;
+    query_nut_version(stream, &mut nut_version).await?;
+    query_nut_upses(stream, &mut upses).await?;
+    query_nut_vars(stream, &mut upses).await?;
 
     Ok((upses, nut_version))
 }
@@ -78,7 +78,7 @@ async fn query_nut_upses(mut stream: &mut BufReader<TcpStream>, upses: &mut UpsV
     }
 
     let line_consumer = |line: &str| {
-        let captures_opt = UPS_PATTERN.captures(&line);
+        let captures_opt = UPS_PATTERN.captures(line);
         match captures_opt {
             Some(captures) => {
                 let ups = captures["ups"].to_owned();
@@ -95,7 +95,7 @@ async fn query_nut_upses(mut stream: &mut BufReader<TcpStream>, upses: &mut UpsV
         Ok(())
     };
 
-    query_nut_list(&mut stream, "LIST UPS", line_consumer).await?;
+    query_nut_list(stream, "LIST UPS", line_consumer).await?;
 
     Ok(())
 }
@@ -108,7 +108,7 @@ async fn query_nut_vars(mut stream: &mut BufReader<TcpStream>, upses: &mut UpsVa
 
     for (ups, vars) in upses.iter_mut() {
         let line_consumer = |line: &str| {
-            let captures_opt = VAR_PATTERN.captures(line);
+            let captures_opt = VAR_PATTERN.captures(&line);
             match captures_opt {
                 Some(captures) => {
                     let variable = captures["var"].to_owned();
@@ -123,7 +123,7 @@ async fn query_nut_vars(mut stream: &mut BufReader<TcpStream>, upses: &mut UpsVa
             Ok(())
         };
 
-        query_nut_list(&mut stream, format!("LIST VAR {}", ups).as_str(), line_consumer).await?;
+        query_nut_list(stream, format!("LIST VAR {}", ups).as_str(), line_consumer).await?;
     }
 
     Ok(())
